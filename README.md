@@ -1,1 +1,1 @@
-# Hardhat PolkaBridge INO Contract
+# INO Contract tested by Hardhat
