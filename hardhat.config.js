@@ -5,7 +5,6 @@ require('dotenv').config({ path: './.env' });
  * @type import('hardhat/config').HardhatUserConfig
  */
 module.exports = {
-  // defaultNetwork: "rinkeby",
   networks: {
     hardhat: {
       // gas: 2100000,
