@@ -5,12 +5,10 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./lib/IWETH.sol";
 import "./ReentrancyGuard.sol";
 
 contract INO is ERC1155, Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
     using Strings for uint256;
     using Counters for Counters.Counter;
 
@@ -91,7 +89,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
     
     // Add Whitelist function 
     function addWhitelist(address user, uint256 pid) public onlyOwner {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         uint[] memory packageIds = pools[poolIndex].PackageIds;
         uint256 packagesLength = packageIds.length;
         for (uint256 i = 0; i < packagesLength; i++)
@@ -107,7 +105,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
     function addMulWhitelist(address[] memory user, uint256 pid)
         public onlyOwner        
     {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         uint[] memory packageIds = pools[poolIndex].PackageIds;
         uint256 packagesLength = packageIds.length;
         for (uint256 i = 0; i < user.length; i++) {
@@ -125,7 +123,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         uint256 pid,
         bool isWhitelist
     ) public onlyOwner {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         uint[] memory packageIds = pools[poolIndex].PackageIds;
         uint256 packagesLength = packageIds.length;
         for (uint256 i = 0; i < packagesLength; i++)
@@ -137,7 +135,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
 
    // Check if user IsWhitelist
     function IsWhitelist(address user, uint256 pid) public view returns (bool) {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         uint[] memory packageIds = pools[poolIndex].PackageIds;
         return whitelist[packageIds[0]][user].IsWhitelist;
     }
@@ -150,7 +148,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         uint256 _TotalItemCount,
         uint256 _RatePerETH
     ) public onlyOwner {
-        uint256 id = packages.length.add(1);
+        uint256 id = packages.length + 1;
         packages.push(
             Package({
                 Id : id,
@@ -162,7 +160,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
                 UsersPurchased : new address[](0)
             })
         );
-        uint256 poolIndex = _PoolId.sub(1);    
+        uint256 poolIndex = _PoolId - 1;    
         pools[poolIndex].PackageIds.push(id);
     }
 
@@ -176,7 +174,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
     ) public onlyOwner {
         pools.push(
             INOPool({
-                Id : pools.length.add(1),
+                Id : pools.length + 1,
                 Begin : _Begin,
                 End : _End,
                 Type : _Type, //1:public, 2:private
@@ -200,7 +198,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         uint256 _AmountINOTRequire,
         uint256 _LockDuration
     ) public onlyOwner {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         if (_Begin > 0) {
             pools[poolIndex].Begin = _Begin;
         }
@@ -220,7 +218,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
 
     // Stopping the pool
     function stopPool(uint256 pid) public onlyOwner {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         pools[poolIndex].IsActived = false;
         pools[poolIndex].IsStopped = true;
 
@@ -229,7 +227,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
     
     // Activating the pool
     function activePool(uint256 pid) public onlyOwner {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         pools[poolIndex].IsActived = true;
         pools[poolIndex].IsStopped = false;
         pools[poolIndex].ActivedDate = block.timestamp;
@@ -243,7 +241,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         uint256 _TotalItemCount,
         uint256 _RatePerETH
     ) public onlyOwner {
-        uint256 packageIndex = _PackageId.sub(1);
+        uint256 packageIndex = _PackageId - 1;
         if (_MinimumTokenSoldout > 0) {
             packages[packageIndex].MinimumTokenSoldout = _MinimumTokenSoldout;
         }
@@ -260,13 +258,13 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         view
         returns (uint256)
     {
-        uint256 packageIndex = packageId.sub(1);
+        uint256 packageIndex = packageId - 1;
         return packages[packageIndex].TotalItemCount;
     }
     
     function getRemainINOToken(uint256 packageId) public view returns (uint256) {
-        uint256 packageIndex = packageId.sub(1);
-        return packages[packageIndex].TotalItemCount.sub(packages[packageIndex].TotalSoldCount);
+        uint256 packageIndex = packageId - 1;
+        return packages[packageIndex].TotalItemCount - packages[packageIndex].TotalSoldCount;
     }
 
     // To Do: Purchase function 
@@ -275,9 +273,9 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         payable
         nonReentrant
     {
-        uint256 packageIndex = packageId.sub(1);
+        uint256 packageIndex = packageId - 1;
         uint256 poolId = packages[packageIndex].PoolId;
-        uint256 poolIndex = poolId.sub(1);
+        uint256 poolIndex = poolId - 1;
         
         require(pools[poolIndex].IsActived, "invalid pool");
         require(
@@ -291,7 +289,7 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
 
         // check eth
         uint256 ethAmount = msg.value;
-        uint256 calcItemAmount = ethAmount.mul(packages[packageIndex].RatePerETH).div(1e36);
+        uint256 calcItemAmount = ethAmount * packages[packageIndex].RatePerETH / 1e36;
         require(calcItemAmount >= quantity, "insufficient funds");
         // check remained token
         uint256 remainToken = getRemainINOToken(packageId);
@@ -301,13 +299,9 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
         );
         require(remainToken >= quantity, "INO sold out");
 
-        whitelist[packageId][msg.sender].TotalETHPurchase = whitelist[packageId][msg.sender]
-            .TotalETHPurchase
-            .add(ethAmount);
+        whitelist[packageId][msg.sender].TotalETHPurchase = whitelist[packageId][msg.sender].TotalETHPurchase + ethAmount;
 
-        whitelist[packageId][msg.sender].PurchasedItemCount = whitelist[packageId][msg.sender]
-            .PurchasedItemCount
-            .add(quantity);
+        whitelist[packageId][msg.sender].PurchasedItemCount = whitelist[packageId][msg.sender].PurchasedItemCount + quantity;
         whitelist[packageId][msg.sender].PurchaseTime = block.timestamp;
 
         if(!purchasecheck[packageId][msg.sender]){
@@ -315,19 +309,17 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
             purchasecheck[packageId][msg.sender] = true;
             users[msg.sender][poolId].PurchasedPackageIds.push(packageId);
         }
-        packages[packageIndex].TotalSoldCount = packages[packageIndex].TotalSoldCount.add(
-            quantity
-        );
+        packages[packageIndex].TotalSoldCount = packages[packageIndex].TotalSoldCount + quantity;
         IWETH(WETH).deposit{value: ethAmount}();
     }
 
     // To Do: Claim Pool
     function claimPool(uint256 pid) public nonReentrant {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         //check user
         if (pools[poolIndex].Type == 2) //private
             require(IsWhitelist(msg.sender, pid), "invalid user");
-        require(block.timestamp > pools[poolIndex].End.add(pools[poolIndex].LockDuration), "not on time for claiming NFTs");
+        require(block.timestamp > pools[poolIndex].End + pools[poolIndex].LockDuration, "not on time for claiming NFTs");
         uint[] memory packageIds = users[msg.sender][pid].PurchasedPackageIds;
         uint256 packagesLength = packageIds.length;
         require(!whitelist[packageIds[0]][msg.sender].IsClaimed, "user already claimed");
@@ -345,14 +337,14 @@ contract INO is ERC1155, Ownable, ReentrancyGuard {
     function getPoolInfo(uint256 pid) public view
         returns ( INOPool memory retSt )
     {
-        uint256 poolIndex = pid.sub(1);
+        uint256 poolIndex = pid - 1;
         return pools[poolIndex];
     }
 
     function getPackageInfo(uint256 packageId) public view
         returns ( Package memory retSt )
     {
-        uint256 packageIndex = packageId.sub(1);
+        uint256 packageIndex = packageId - 1;
         return packages[packageIndex];
     }
 
